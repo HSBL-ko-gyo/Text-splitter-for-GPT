@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>GPT用分割ツール</title>
+    <style>
+        table,
+        th,
+        td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 5px;
+            text-align: center;
+        }
+
+        th {
+            background-color: lightgray;
+        }
+
+        button {
+            width: 100%;
+        }
+
+        input[type=checkbox] {
+            margin: 0 auto;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>GPT用分割ツール</h1>
+    <p>長い文章を分割し、コピペできるようにするツールです。</p>
+    <hr>
+    <h2>GPTに長い文章を渡すには以下をはじめに書いてください。</h2>
+    <hr>
+    <p>"始めて#$#$#$" という行が来るまで作業を始めないでください。</p>
+    <p>代わりに "次の入力を待っています" とだけ出力してください。</p>
+    <p>わかりましたか?</p>
+    <hr>
+    <p>参考webページ</p>
+    <p>ChatGPTの文字数制限を克服する。https://chatgpt-lab.com/n/n27192235310c</p>
+    <hr>
+    <p>以下のボックスに長い文章を入力してください。</p>
+    <textarea id="textInput" rows="10" cols="50"></textarea>
+    <p>テキストの最大長さ:</p>
+    <input type="number" id="maxLength" name="maxLength" value="1000">
+    <button id="splitButton">分割する</button>
+    <hr>
+    <div id="resultTable"></div>
+    <textarea id="hiddenTextArea" style="display:none;"></textarea>
+    <script>
+        function splitText(text, maxLength) {
+            const sentences = text.split(/[。、]/g);
+            let resultArray = [];
+            let currentText = '';
+
+            for (let i = 0; i < sentences.length; i++) {
+                const sentence = sentences[i];
+
+                if (currentText.length + sentence.length + 1 <= maxLength) {
+                    currentText += sentence + '。';
+                } else {
+                    resultArray.push(currentText);
+                    currentText = sentence + '。';
+                }
+            }
+
+            if (currentText) {
+                resultArray.push(currentText);
+            }
+
+            return resultArray;
+        }
+
+        function createTable(resultArray) {
+            const resultTable = document.getElementById('resultTable');
+            const table = document.createElement('table');
+            const header = document.createElement('tr');
+            const headerText1 = document.createTextNode('分割されたテキスト');
+            const headerText2 = document.createTextNode('コピー');
+
+            header.appendChild(headerText1);
+            header.appendChild(document.createElement('th'));
+            header.appendChild(headerText2);
+            table.appendChild(header);
+
+            for (let i = 0; i < resultArray.length; i++) {
+                const row = document.createElement('tr');
+                const cell1 = document.createElement('td');
+                const cell2 = document.createElement('td');
+                const cell3 = document.createElement('td');
+                const cellText = document.createTextNode(resultArray[i].substring(0, 10) + '...');
+                const button = document.createElement('button');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.name = 'copied-checkbox';
+                checkbox.disabled = true;
+
+                button.appendChild(document.createTextNode('コピー'));
+                button.onclick = function () {
+                    const text = resultArray[i];
+                    const tempTextArea = document.createElement('textarea');
+                    tempTextArea.value = text;
+                    document.body.appendChild(tempTextArea);
+                    tempTextArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempTextArea);
+                    checkbox.checked = true;
+                };
+
+                cell1.appendChild(cellText);
+                cell2.appendChild(checkbox);
+                cell3.appendChild(button);
+                row.appendChild(cell1);
+                row.appendChild(cell2);
+                row.appendChild(cell3);
+                table.appendChild(row);
+            }
+
+            resultTable.innerHTML = '';
+            resultTable.appendChild(table);
+        }
+
+        const splitButton = document.getElementById('splitButton');
+        splitButton.onclick = function () {
+            const textInput = document.getElementById('textInput');
+            const maxLength = parseInt(document.getElementById('maxLength').value);
+            const text = textInput.value.trim();
+            const resultArray = splitText(text, maxLength);
+            createTable(resultArray);
+        };
+    </script>
+</body>
+
+</html>
